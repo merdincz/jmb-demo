@@ -1,0 +1,71 @@
+properties([
+    parameters([
+        [
+            $class: 'CascadeChoiceParameter',
+            choiceType: 'PT_SINGLE_SELECT',
+            name: 'branch', 
+            script: [
+                $class: 'GroovyScript',
+                script: [
+                    sandbox: false,
+                    classpath: [],
+                    script: '''
+                        import jenkins.model.Jenkins                    
+                        try {
+                            def jobName = "demo-app/build"
+                            def multiBranchJob = Jenkins.instance.getItemByFullName(jobName)
+                            return multiBranchJob.getItems().collect { it.displayName }.toList()
+                        } catch (Exception e) {
+                            return e.getMessage().split('').toList()
+                        }
+                    '''
+                ]
+            ]
+        ],
+        [
+            $class: 'CascadeChoiceParameter',
+            choiceType: 'PT_SINGLE_SELECT',
+            name: 'buildId', 
+            script: [
+                $class: 'GroovyScript',
+                fallbackScript: [
+                    sandbox: true,
+                    classpath: [],
+                    script:
+                    '''
+                    return "Unable to fetch builds"
+                    '''
+                ],
+                script: [
+                    sandbox: true,
+                    classpath: [],
+                    script:
+                    '''
+                    import jenkins.model.Jenkins
+                    try {
+                        def jobName = "demo-app/build/" + branch
+                        def job = Jenkins.instance.getItemByFullName(jobName)
+                        return job.builds.findAll { it.result == hudson.model.Result.SUCCESS }.collect { it.number }.toList()
+                    } catch (Exception e) {
+                        return e.getMessage().split('').toList()
+                    }
+                    '''
+                ]
+            ],
+            referencedParameters: 'branch'
+        ]
+    ])
+])
+
+pipeline {
+    agent any
+
+    stages {
+        stage('Deploy') {
+            steps {
+                echo "Deploying build ${buildId} from branch ${branch}..."
+                // Add steps here for your deployment
+            }
+        }
+    }
+}
