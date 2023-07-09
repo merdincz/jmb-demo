@@ -1,0 +1,26 @@
+podTemplate(yaml: '''
+              kind: Pod
+              spec:
+                containers:
+                - name: kaniko
+                  image: gcr.io/kaniko-project/executor:v1.6.0-debug
+                  imagePullPolicy: Always
+                  command:
+                  - sleep
+                  args:
+                  - 99d
+'''
+  ) {
+  node(POD_LABEL) {
+    stage('Checkout') {
+      git changelog: false, poll: false, url: 'https://github.com/merdincz/jmb-demo', branch: "main"
+    }
+    stage('Build with Kaniko') {
+      container('kaniko') {
+        sh '''#!/busybox/sh
+        /kaniko/executor --context=${WORKSPACE} --dockerfile=${WORKSPACE}/Dockerfile --destination=registry.registry:5000/hworld:$JOB_NAME-$BUILD_NUMBER --insecure
+        '''
+      }
+    }
+  }
+}
