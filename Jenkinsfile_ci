@@ -18,7 +18,7 @@ podTemplate(yaml: '''
     stage('Build with Kaniko') {
       container('kaniko') {
         sh '''#!/busybox/sh
-        /kaniko/executor --context=${WORKSPACE} --dockerfile=${WORKSPACE}/Dockerfile --destination=registry.registry:5000/hworld:$JOB_NAME-$BUILD_NUMBER --insecure
+        /kaniko/executor --context=${WORKSPACE} --dockerfile=${WORKSPACE}/Dockerfile --destination=registry.registry:5000/hworld:$JOB_BASE_NAME-$BUILD_NUMBER --insecure
         '''
       }
     }
