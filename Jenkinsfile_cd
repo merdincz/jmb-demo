@@ -57,15 +57,27 @@ properties([
     ])
 ])
 
-pipeline {
-    agent any
-
-    stages {
-        stage('Deploy') {
-            steps {
-                echo "Deploying build ${buildId} from branch ${branch}..."
-                // Add steps here for your deployment
-            }
+podTemplate(
+  label: 'kubectl-pod',
+  containers: [
+    containerTemplate(
+      name: 'kubectl', 
+      image: 'lachlanevenson/k8s-kubectl:v1.18.8', 
+      command: 'cat', 
+      ttyEnabled: true
+    )
+  ]
+) {
+  node('kubectl-pod') {
+    stage('Deploy') {
+        echo "Deploying build ${buildId} from branch ${branch}..."
+        // Add steps here for your deployment
+    }
+    
+    stage('Test'){
+        container('kubectl') {
+          sh "kubectl set image deployment/hello-world-${JOB_BASE_NAME} -n ${JOB_BASE_NAME} *=${MINIKUBE_IP}:30500/hworld:${branch}-${buildId}"
         }
     }
+  }
 }
