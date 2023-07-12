@@ -76,7 +76,7 @@ podTemplate(
     
     stage('Test'){
         container('kubectl') {
-          sh "kubectl set image deployment/hello-world-${JOB_BASE_NAME} -n ${JOB_BASE_NAME} *=${MINIKUBE_IP}:30500/hworld:${branch}-${buildId}"
+          sh "kubectl set image deployment/hello-world-${JOB_BASE_NAME} -n ${JOB_BASE_NAME} *=registry.registry:30500/hworld:${branch}-${buildId}"
         }
     }
   }
